@@ -386,11 +386,14 @@ def list_sessions(
 
 
 def workspace_name(cwd: str) -> str:
-    """把 cwd 变成短工作区名；路径太长时保留最后一段。"""
+    """把 cwd 变成短工作区名；兼容 Windows 反斜杠路径。"""
     cwd = (cwd or "").strip()
     if not cwd:
         return "(未知工作区)"
-    name = Path(cwd).name
+    # Path(...).name 在 POSIX 上不会把反斜杠当分隔符；测试和远程运行时
+    # 都可能收到 Windows 路径，所以先统一分隔符。
+    normalized = cwd.replace("\\", "/").rstrip("/")
+    name = normalized.rsplit("/", 1)[-1]
     return name or cwd
 
 
