@@ -1,0 +1,82 @@
+{
+  "watch_chat": {
+    "type": "string",
+    "default": "",
+    "description": "要监看的 Telegram 群：数字 id、@用户名、t.me 链接或群标题都行"
+  },
+  "watch_user": {
+    "type": "string",
+    "default": "lgd",
+    "description": "要特别留意的人：昵称或 @用户名 包含这个词就算命中，忽略大小写（默认 lgd）"
+  },
+  "special_text": {
+    "type": "string",
+    "default": "LGD的奇妙冒险",
+    "description": "命中关键词时卡片上打的那句标注（不带条数）"
+  },
+  "auto_watch": {
+    "type": "bool",
+    "default": true,
+    "description": "开启定时自动监听：后台每 N 分钟查一次，有新消息就把卡片图推到群；关掉就只剩手动 /tg"
+  },
+  "auto_interval_minutes": {
+    "type": "int",
+    "default": 5,
+    "description": "自动巡查间隔（分钟，1~60）；默认 5 分钟"
+  },
+  "source_dir": {
+    "type": "string",
+    "default": "",
+    "description": "爬虫工具目录：从这里读 config.json 和 sessions/crawler.session，复用已登录的 Telegram 账号；留空使用 ~/telegram-video-crawler/dist"
+  },
+  "source_config": {
+    "type": "string",
+    "default": "",
+    "description": "可选：直接指定爬虫的 config.json；留空就用 source_dir/config.json"
+  },
+  "source_session": {
+    "type": "string",
+    "default": "",
+    "description": "可选：直接指定 .session 文件；留空就用 source_dir/sessions/crawler.session"
+  },
+  "api_id": {
+    "type": "int",
+    "default": 17349,
+    "description": "Telegram api_id；留 0 则从爬虫 config.json 读取（session 与 api_id 绑定，别随便改）"
+  },
+  "api_hash": {
+    "type": "string",
+    "default": "",
+    "description": "Telegram api_hash；留空自动从爬虫 config.json 读取，不用手抄"
+  },
+  "proxy": {
+    "type": "string",
+    "default": "",
+    "description": "代理：留空自动读 Windows 系统代理；也可填 socks5://127.0.0.1:7890、http://host:port，或填 direct 强制直连"
+  },
+  "max_fetch": {
+    "type": "int",
+    "default": 200,
+    "description": "单次最多拉取多少条新消息（20~1000）；超过上限会分批，游标继续往后推，不会漏"
+  },
+  "cooldown_seconds": {
+    "type": "int",
+    "default": 10,
+    "description": "两次 /tg 之间最少间隔秒数，防止连点刷屏"
+  },
+  "timeout_seconds": {
+    "type": "int",
+    "default": 90,
+    "description": "单次查询最长等待秒数（20~300），超时直接报错，不把群晾着"
+  },
+  "show_senders": {
+    "type": "bool",
+    "default": true,
+    "description": "是否在结果里列出主要发言人（只给昵称和条数，不带任何正文）"
+  },
+  "notify_umo": {
+    "type": "string",
+    "default": "",
+    "description": "自动播报的固定目标会话（如 机器人:GroupMessage:xxx）；留空就用「发过 /tg 的那个群」，首次在目标群发一次 /tg 即自动锁定"
+  }
+}

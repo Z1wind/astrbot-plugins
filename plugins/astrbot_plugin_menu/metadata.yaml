@@ -1,0 +1,10 @@
+name: astrbot_plugin_menu
+display_name: 乐乐功能菜单
+short_desc: 用 /菜单 列出乐乐常用入口：聊天/情感、群开关、基金与小工具、管理员命令。
+desc: AstrBot 内置 /help 只列系统保留命令，看不到插件提供的能力；这个插件提供面向使用者的 /菜单，按聊天、群指令、小工具、管理员分组，非管理员不显示管理员段。纯文本、无外部依赖、不调用 LLM。
+author: astrbot-lele
+version: v0.1.1
+support_platforms:
+  - qq_official
+  - aiocqhttp
+astrbot_version: ">=4.24.0,<5.0.0"

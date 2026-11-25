@@ -1,0 +1,10 @@
+name: astrbot_plugin_emotion_memory
+display_name: 情感记忆
+short_desc: 乐乐记住情感咨询对象的人物档案（谁是谁、关系、事件、建议），跨对话持久，不再发完图就忘了目标是谁。
+desc: 给乐乐提供 emotion_memory_save / emotion_memory_query / emotion_memory_list 三个 LLM 工具：在情感咨询场景中，把群聊里出现的关键人物存档（名字、身份、与咨询者关系、事件经过、给过的判断和建议、最新进展），之后任何时候提到对方都能调用记忆工具回忆，实现"针对情感特化记忆"。
+author: astrbot-lele
+version: v1.0.0
+support_platforms:
+  - qq_official
+  - aiocqhttp
+astrbot_version: ">=4.24.0,<5.0.0"

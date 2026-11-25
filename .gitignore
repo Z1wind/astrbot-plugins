@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.bak
+*.bak_*
+data/
+plugin_data/
+avatars/
+rendered/
+dist/
+build/
+out/
+.env
+*.log
+*.db
+*.sqlite
+.venv/
+node_modules/

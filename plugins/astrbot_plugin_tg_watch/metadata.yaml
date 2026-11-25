@@ -1,0 +1,10 @@
+name: astrbot_plugin_tg_watch
+display_name: TG 群更新播报
+short_desc: 后台每 5 分钟自动读一次 Telegram 指定群，把新增消息渲染成一张卡片图推到群；昵称含 lgd 的发言打「LGD的奇妙冒险」。
+desc: 复用本机 Telegram 爬虫工具已登录的会话（复制一份到插件数据目录，避免和 GUI 版抢 SQLite 锁）。Telethon 客户端固定在一个后台线程的独立事件循环里常驻运行，连接与群实体都只建一次，巡检时只发一个取消息请求，不占 AstrBot 主事件循环、也不反复握手。定时任务按 auto_interval_minutes（默认 5 分钟）按游标（state.json 里的 last_id）拉取新增消息，只统计条数、主要发言人和时间范围，用本地 Pillow 渲染成一张卡片图发到群，绝不回传消息正文，避免腾讯审核拦截；没有新消息时完全静默，不发“0 条”。昵称或用户名包含关键词（默认 lgd，忽略大小写）时打上「LGD的奇妙冒险」，不写条数。自动推送的目标群取 notify_umo 配置，留空则用最后一次 /tg 所在的群（插件自动记录）。首次运行只建立基线不刷历史；单次上限 max_fetch 条，超出分批推进游标不漏消息。代理留空自动读 Windows 系统代理，必须用 python-socks（pysocks 会静默直连超时）。
+author: astrbot-lele
+version: v1.1.0
+support_platforms:
+  - qq_official
+  - aiocqhttp
+astrbot_version: ">=4.24.0,<5.0.0"

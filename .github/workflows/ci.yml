@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: python -m pip install -q httpx Pillow
+      - name: Compile
+        run: python -m compileall -q plugins
+      - name: dsh_bridge tests
+        run: python -m unittest discover -s plugins/astrbot_plugin_dsh_bridge/tests -v
+      - name: menu tests
+        run: python -m unittest discover -s plugins/astrbot_plugin_menu/tests -v
+      - name: group_summary tests
+        run: python -m unittest discover -s plugins/astrbot_plugin_group_summary/tests -v

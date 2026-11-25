@@ -1,0 +1,10 @@
+name: astrbot_plugin_dsh_bridge
+display_name: DSH 远程任务桥
+short_desc: 通过 QQ 私聊让本机 DeepSeek Harness 跑任务，可续写已有对话；默认等 1 小时，心跳每分钟、推理摘录限频；仅管理员、仅私聊，带超时/输出截断/审计。
+desc: 使用 DeepSeek Harness 自带的 headless 模式（dsh --profile headless [--session-id <id>] "任务"），把 AstrBot 当前 provider 的 key/base_url 注入子进程，任务完成后把最终输出发回 QQ。支持 /dsh sessions 列出本机 DSH 对话、/dsh use N 选中一个、之后任务续在它的历史里；/dsh new 回到每次新建；/dsh stop 终止当前任务。选中的会话若使用非 Default 的 agent preset（cordis/standard），不再要求用户去 GUI 改设置：自动新建 Default 会话，带最近几轮摘要继续，成功后自动选中新会话。默认单次 3600 秒超时（DSH_BRIDGE_TIMEOUT 可改），运行中每 60 秒发一条“已用多久/进程是否存活”（DSH_BRIDGE_HEARTBEAT 可改，0 关闭）；推理摘录默认每 120 秒最多 1 条、一次任务最多 4 条（DSH_BRIDGE_REASONING_INTERVAL / DSH_BRIDGE_REASONING_MAX 可改，MAX=0 关闭），并过滤 crashpad 等噪声。DSH 以本机 Windows 账户执行，能读写文件/跑命令，等同于远程控制电脑；因此只允许管理员私聊使用，不提供任意 shell 入口，输出 6000 字截断，并写审计日志。
+author: astrbot-lele
+version: v0.3.1
+support_platforms:
+  - qq_official
+  - aiocqhttp
+astrbot_version: ">=4.24.0,<5.0.0"

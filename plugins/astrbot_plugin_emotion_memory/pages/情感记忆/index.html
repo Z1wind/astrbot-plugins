@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乐乐 · 情感记忆管理台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f0f3fb; color: #20242e; padding: 24px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #7b8294; font-size: 13px; margin-bottom: 18px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toolbar input { flex: 1; }
+  input, textarea { padding: 8px 10px; border: 1px solid #dfe4f0; border-radius: 8px; font-size: 13px; font-family: inherit; }
+  textarea { width: 100%; min-height: 160px; resize: vertical; }
+  button { border: 0; border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .btn-p { background: #2d3a8c; color: #fff; }
+  .btn-g { background: #eef1f8; color: #444; }
+  .btn-d { background: #fce9e7; color: #d93b34; }
+  .btn:hover { opacity: .9; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .card { background: #fff; border-radius: 14px; box-shadow: 0 2px 10px rgba(30,40,90,.06); padding: 16px; }
+  .card h3 { margin: 0 0 6px; font-size: 15px; }
+  .alias { margin: 6px 0; }
+  .alias span { display: inline-block; background: #eef2ff; color: #2d3a8c; border-radius: 6px; padding: 2px 8px; margin: 2px 4px 2px 0; font-size: 12px; }
+  .alias .x { cursor: pointer; color: #d93b34; margin-left: 4px; font-weight: bold; }
+  .record { white-space: pre-wrap; color: #5b6270; font-size: 12px; max-height: 130px; overflow: auto; margin: 10px 0; border-top: 1px dashed #e6eaf5; padding-top: 8px; }
+  .card .ops { display: flex; gap: 6px; margin-top: 8px; }
+  .muted { color: #8a90a0; font-size: 12px; }
+  .modal { display: none; position: fixed; inset: 0; background: rgba(20,25,45,.45); align-items: center; justify-content: center; z-index: 20; }
+  .modal.open { display: flex; }
+  .panel { background: #fff; border-radius: 14px; width: 560px; max-width: 94vw; max-height: 88vh; overflow: auto; padding: 22px; box-shadow: 0 8px 30px rgba(20,30,60,.25); }
+  .panel h2 { margin: 0 0 14px; font-size: 17px; }
+  .row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+  .row label { min-width: 52px; font-size: 12px; color: #5b6270; }
+  #toast { position: fixed; top: 16px; right: 16px; background: #222; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: .3s; pointer-events: none; z-index: 9; }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<h1>💞 乐乐 · 情感记忆管理台</h1>
+<div class="sub">AstrBot 插件页面 · 数据文件 emotion_memories.json（与乐乐实时共用）</div>
+<div class="toolbar">
+  <input id="q" placeholder="搜索主名 / 别名…">
+  <button class="btn-g" onclick="load()">刷新</button>
+  <button class="btn-p" onclick="openNew()">＋ 新增对象</button>
+</div>
+<div class="grid" id="grid"></div>
+
+<div class="modal" id="modal"><div class="panel">
+  <h2 id="mTitle">编辑对象</h2>
+  <div class="row"><label>主名</label><input id="fName" placeholder="例如 对象A"></div>
+  <div class="row"><label>别名</label>
+    <input id="fAlias" placeholder="输入外号/其他称呼，回车添加" onkeydown="if(event.key==='Enter')addAlias()">
+    <button class="btn-g" onclick="addAlias()">添加</button></div>
+  <div class="alias" id="aliasList"></div>
+  <div class="muted" style="margin:8px 0 4px">人物档案</div>
+  <textarea id="fRecord" placeholder="ta是谁、和咨询者关系、关键事件、给过的建议、最新进展……"></textarea>
+  <div class="ops" style="margin-top:14px;justify-content:flex-end">
+    <button class="btn-g" onclick="closeModal()">取消</button>
+    <button class="btn-p" onclick="saveCurrent()">保存</button>
+  </div>
+</div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const page=()=>window.AstrBotPluginPage;
+let current=null, editingName=null;
+function toast(t){const e=$('#toast');e.textContent=t;e.style.opacity=1;clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity=0,2200);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function bridgeReady(){return new Promise(res=>{(function chk(){if(window.AstrBotPluginPage)res(window.AstrBotPluginPage);else setTimeout(chk,50);})();});}
+async function g(ep){
+  try{ return await page().apiGet(ep); }
+  catch(err){ toast('加载失败：'+((err&&err.message)||ep)); return null; }
+}
+async function p(ep,body){
+  try{ return await page().apiPost(ep,body||{}); }
+  catch(err){ return {ok:false,error:(err&&err.message)||'请求失败'}; }
+}
+async function load(){
+  const data=await g('api/objects');
+  if(!data) return;
+  const q=($('#q').value||'').trim().toLowerCase();
+  const objs=Object.keys(data).map(n=>({name:n,...data[n]}))
+    .filter(o=>!q||o.name.toLowerCase().includes(q)||(o.aliases||[]).some(a=>a.toLowerCase().includes(q)));
+  $('#grid').innerHTML=objs.length?objs.map(o=>`
+    <div class="card"><h3>${esc(o.name)}</h3>
+      <div class="alias">${(o.aliases||[]).map(a=>`<span>${esc(a)}</span>`).join('')||'<span class="muted">无别名</span>'}</div>
+      <div class="record">${esc(o.record||'')}</div>
+      <div class="ops"><button class="btn-g" onclick="openEdit('${esc(o.name)}')">编辑</button>
+      <button class="btn-d" onclick="delObj('${esc(o.name)}')">删除</button></div></div>`).join('')
+    :'<div class="muted">暂无对象，点右上角「新增对象」。</div>';
+}
+async function openNew(){editingName=null;current={name:'',aliases:[]};$('#mTitle').textContent='新增对象';$('#fName').value='';$('#fRecord').value='';renderAliases();$('#modal').classList.add('open');}
+async function openEdit(n){
+  editingName=n;
+  const d=await g('api/objects/'+n);
+  if(!d) return;
+  current=d;
+  $('#mTitle').textContent='编辑 · '+n;
+  $('#fName').value=d.name||n;
+  $('#fRecord').value=d.record||'';
+  renderAliases();$('#modal').classList.add('open');
+}
+function closeModal(){$('#modal').classList.remove('open');}
+function renderAliases(){$('#aliasList').innerHTML=(current.aliases||[]).map(a=>`<span>${esc(a)}<b class="x" onclick="delAlias('${esc(a)}')">✕</b></span>`).join('');}
+async function addAlias(){
+  const a=($('#fAlias').value||'').trim();
+  if(!a) return;
+  const d=await p('api/objects/'+editingName+'/aliases',{alias:a});
+  if(d && d.ok===false){toast('添加失败：'+d.error);return;}
+  current=await g('api/objects/'+editingName);
+  $('#fAlias').value='';renderAliases();load();
+}
+async function delAlias(a){
+  if(!confirm('删除别名「'+a+'」？'))return;
+  const d=await p('api/objects/'+editingName+'/aliases/'+a+'/delete');
+  if(d && d.ok===false){toast('删除失败：'+d.error);return;}
+  current=await g('api/objects/'+editingName);
+  renderAliases();load();
+}
+async function saveCurrent(){
+  const name=($('#fName').value||'').trim(), record=($('#fRecord').value||'').trim();
+  if(!name){toast('主名不能为空');return;}
+  const payload={name,record,aliases:(current.aliases||[])};
+  const d=await p('api/objects',payload);
+  if(d && d.ok===false){toast('保存失败：'+d.error);return;}
+  if(editingName && name!==editingName){
+    await p('api/objects/'+editingName+'/delete');
+  }
+  toast('已保存');
+  closeModal();load();
+}
+async function delObj(n){
+  if(!confirm('确定删除「'+n+'」的档案？'))return;
+  const d=await p('api/objects/'+n+'/delete');
+  if(d && d.ok===false){toast('删除失败：'+d.error);return;}
+  toast('已删除');
+  load();
+}
+$('#q').addEventListener('input',load);
+bridgeReady().then(load);
+</script>
+</body>
+</html>

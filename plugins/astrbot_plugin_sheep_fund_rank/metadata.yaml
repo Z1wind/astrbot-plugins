@@ -1,0 +1,41 @@
+name: astrbot_plugin_sheep_fund_rank
+desc: 羊村基金涨跌榜：@机器人说「涨跌榜」查看群内成员理财数据；说「导入数据」并附截图，用图像识别大模型自动录入成员基金持仓；每日基金变化自动更新成员资金并在群内提示。
+author: 羊村
+version: v1.0.0
+support_platforms:
+  - qq_official
+  - aiocqhttp
+astrbot_version: ">=4.20,<5"
+config:
+  default_confirm_time:
+    type: string
+    description: 预约确认时没给具体时刻的默认时间（HH:MM，如 15:00）
+    default: "15:00"
+  ocr_strict_page:
+    type: bool
+    description: 截图类型严格校验：非持仓/交易明细的图直接拒绝导入
+    default: true
+  daily_update_time:
+    type: string
+    description: 每日自动更新时间（HH:MM，如 20:00）
+    default: "20:00"
+  estimate_push_enabled:
+    type: bool
+    description: 是否在交易日自动推送盘中估值（午间休盘 / 下午收盘）
+    default: true
+  estimate_push_times:
+    type: string
+    description: 盘中估值自动推送时点（HH:MM 逗号分隔，默认午间休盘 11:30 + 收盘 15:00）
+    default: "11:30,15:00"
+  push_group_openid:
+    type: string
+    description: 主动推送的目标群 openid（留空则自动取最近活跃的群；换群后改这里）
+    default: ""
+  board_row_h:
+    type: int
+    description: 涨跌榜每行高度（像素，越大行越松）
+    default: 96
+  member_funds:
+    type: list
+    description: 面板维护的成员基金数据（新增条目或调整本金用）。每项形如 {"member":"成员名","fund_code":"6位基金代码","fund_name":"基金名","principal":本金金额}。库中已存在的记录仅在本金值不同时才更新；彻底删除某条记录请用群内「删除基金」指令。
+    default: []
